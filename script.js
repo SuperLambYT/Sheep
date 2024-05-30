@@ -1,17 +1,12 @@
 // Функция для получения списка статей
 async function fetchArticles(page) {
-    try {
-        const response = await fetch(`https://gorest.co.in/public-api/posts?page=${page}`);
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching articles:', error);
-        return null;
-    }
+    const response = await fetch(`https://gorest.co.in/public-api/posts?page=${page}`);
+    const data = await response.json();
+    return data;
 }
 
-// Функция для отображения списка статей
-function displayArticles(articles) {
+// Функция для отображения списка статей с пагинацией
+async function displayArticles(articles) {
     const articlesList = document.getElementById('articles-list');
     articlesList.innerHTML = '';
 
@@ -23,30 +18,56 @@ function displayArticles(articles) {
         listItem.append(link);
         articlesList.append(listItem);
     });
+
+    // Определяем текущую страницу и общее количество страниц
+    const currentPage = articles.meta.pagination.page;
+    const totalPages = articles.meta.pagination.pages;
+
+    // Добавляем пагинацию
+    const paginationContainer = document.getElementById('pagination');
+    paginationContainer.innerHTML = '';
+
+    // Показываем предыдущие две страницы (если они существуют)
+    for (let i = Math.max(1, currentPage - 2); i < currentPage; i++) {
+        const pageLink = document.createElement('a');
+        pageLink.href = `#`;
+        pageLink.textContent = i;
+        pageLink.addEventListener('click', async function () {
+            fetchArticles(i).then(displayArticles);
+        });
+        paginationContainer.append(pageLink);
+    }
+
+    // Показываем текущую страницу
+    const currentPageLink = document.createElement('span');
+    currentPageLink.textContent = currentPage;
+    currentPageLink.classList.add('current');
+    paginationContainer.append(currentPageLink);
+
+    // Показываем последующие две страницы (если они существуют)
+    for (let i = currentPage + 1; i <= Math.min(currentPage + 2, totalPages); i++) {
+        const pageLink = document.createElement('a');
+        pageLink.href = `#`;
+        pageLink.textContent = i;
+        pageLink.addEventListener('click', async function () {
+            fetchArticles(i).then(displayArticles);
+        });
+        paginationContainer.append(pageLink);
+    }
 }
 
 // Функция для получения информации о статье по ID
 async function fetchArticleById(id) {
-    try {
-        const response = await fetch(`https://gorest.co.in/public-api/posts/${id}`);
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching article detail:', error);
-        return null;
-    }
+    const response = await fetch(`https://gorest.co.in/public-api/posts/${id}`);
+    const data = await response.json();
+    return data;
 }
 
 // Функция для получения комментариев к статье по ID
 async function fetchCommentsByPostId(postId) {
-    try {
-        const response = await fetch(`https://gorest.co.in/public-api/comments?post_id=${postId}`);
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching comments:', error);
-        return null;
-    }
+    const response = await fetch(`https://gorest.co.in/public-api/comments?post_id=${postId}`);
+    const data = await response.json();
+    return data;
 }
 
 // Функция для отображения детальной информации о статье
